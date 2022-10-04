@@ -16,6 +16,11 @@ Including another URLconf
 
 from django.urls import path
 
+# from calculator.views import recipt
+from calculator.views import recipt, index
+
 urlpatterns = [
     # здесь зарегистрируйте вашу view-функцию
+    path('', index, name='index'),
+    path('<name>/', recipt, name='recipt'),
 ]

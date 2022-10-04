@@ -1,3 +1,5 @@
+from django.http import HttpResponse
+
 from django.shortcuts import render
 
 DATA = {
@@ -28,3 +30,18 @@ DATA = {
 #     'ингредиент2': количество2,
 #   }
 # }
+
+def index(request):
+    return HttpResponse('Укажите блюдо.')
+def recipt(request, name):
+    context = {}
+    num = int(request.GET.get("servings", 1))
+    if name in DATA:
+        context['recipe'] = name
+        context['ingred'] = DATA[name]
+        for i in context['ingred']:
+            context['ingred'][i] *= num
+    else:
+        return HttpResponse(f'Рецепта "{name}" нет.')
+
+    return render(request, 'index.html', context)
