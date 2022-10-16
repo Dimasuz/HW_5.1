@@ -11,7 +11,7 @@ class ScopeInlineFormset(BaseInlineFormSet):
         for form in self.forms:
             # В form.cleaned_data будет словарь с данными
             # каждой отдельной формы, которые вы можете проверить
-            if form.cleaned_data['is_main']:
+            if form.cleaned_data.get('is_main'):
                 count += 1
             if count > 1:
                 raise ValidationError('Основным может быть только один раздел')
@@ -26,7 +26,7 @@ class ScopeInlineFormset(BaseInlineFormSet):
 class ScopeInLine(admin.TabularInline):
     model = Scope
     formset = ScopeInlineFormset
-    extra = 0
+    extra = 1
 
 
 @admin.register(Article)
