@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from advertisements.models import Advertisement
 
@@ -41,5 +42,9 @@ class AdvertisementSerializer(serializers.ModelSerializer):
         """Метод для валидации. Вызывается при создании и обновлении."""
 
         # TODO: добавьте требуемую валидацию
+        status = data['status']
+        num = len(Advertisement.objects.filter(creator=self.context["request"].user, status='OPEN'))
+        if num > 10 and status == 'OPEN':
+            raise ValidationError('Превышено максимальное количество отрытых объявлений')
 
         return data
