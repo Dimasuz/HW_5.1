@@ -50,9 +50,13 @@ class StockSerializer(serializers.ModelSerializer):
         for position in positions:
             product = position.get('product')
 
-            if StockProduct.objects.filter(stock=stock, product=product):
-                StockProduct.objects.filter(stock=stock, product=product).update(quantity=position.get('quantity'), price=position.get('price'))
-            else:
-                StockProduct.objects.create(stock=stock, **position)
+            # if StockProduct.objects.filter(stock=stock, product=product):
+            #     StockProduct.objects.filter(stock=stock, product=product).update(quantity=position.get('quantity'), price=position.get('price'))
+            # else:
+            #     StockProduct.objects.create(stock=stock, **position)
+            # это можно с помощью objects.update_or_create упростить до:
+            StockProduct.objects.update_or_create(stock=stock, product=product,
+                                              defaults={'quantity': position.get('quantity'),
+                                                        'price': position.get('price')})
 
         return stock
