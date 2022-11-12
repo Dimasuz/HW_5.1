@@ -29,6 +29,11 @@ def students_factory():
         return baker.make(Student, *args, **kwargs)
     return factory
 
+#фикстура максимального количества студентов
+@pytest.fixture
+def max_student_in_settings(settings):
+#    settings.MAX_STUDENTS_PER_COURSE = True
+    return settings.MAX_STUDENTS_PER_COURSE
 
 # проверка получения 1го курса (retrieve-логика)
 # создаем курс через фабрику
@@ -173,9 +178,10 @@ def test_delete_course(client, courses_factory):
 
 # тест обновления курса с ограничением по количеству студентов
 @pytest.mark.django_db
-@pytest.mark.parametrize("num_student,status",[(15, 200), (21, 400)],)
-def test_update_course(client, courses_factory, students_factory, num_student, status):
+@pytest.mark.parametrize("num_student,status",[(-1, 200), (1, 400)],)
+def test_update_course_maxstudent(client, max_student_in_settings, courses_factory, students_factory, num_student, status):
     # Arrange
+    num_student += max_student_in_settings
     courses = courses_factory()
     students = students_factory(_quantity=num_student)
     # name = courses.name + 'test'
@@ -192,9 +198,10 @@ def test_update_course(client, courses_factory, students_factory, num_student, s
 
 #тест создания курса с ограничением по количеству студентов на курсе
 @pytest.mark.django_db
-@pytest.mark.parametrize("num_student,status,expected",[(15, 201, 1), (21, 400, 0)],)
-def test_create_course(client, students_factory, num_student, status, expected):
+@pytest.mark.parametrize("num_student,status,added",[(-1, 201, 1), (1, 400, 0)],)
+def test_create_course_maxstudent(client, max_student_in_settings, students_factory, num_student, status, added):
     # Arrange
+    num_student += max_student_in_settings
     count = Course.objects.count()
     students = students_factory(_quantity=num_student)
     students_list = [students[i].id for i in range(num_student)]
@@ -206,7 +213,7 @@ def test_create_course(client, students_factory, num_student, status, expected):
 
     # Assert
     assert response.status_code == status
-    assert Course.objects.count() == count + expected
+    assert Course.objects.count() == count + added
 
 
 
