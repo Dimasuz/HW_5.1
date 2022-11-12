@@ -19,7 +19,6 @@ def client():
 def courses_factory():
     def factory(*args, **kwargs):
         # return baker.make(Course, make_m2m=True, *args, **kwargs)
-
         return baker.make(Course, *args, **kwargs)
     return factory
 
@@ -137,7 +136,8 @@ def test_update_course(client, courses_factory, students_factory):
 
     # Act
     url = f'/api/v1/courses/{courses.id}/'
-    data = {'name': name, 'students': [students[2].id]}
+    students_list = [students[2].id, students[0].id, students[1].id, students[4].id]
+    data = {'name': name, 'students': students_list,}
     resp = client.put(url, data=data)
     url = '/api/v1/courses/'
     data = {'id': courses.id}
@@ -149,7 +149,7 @@ def test_update_course(client, courses_factory, students_factory):
     assert response.status_code == 200
     assert data[0]['name'] == name
     assert data[0]['id'] == courses.id
-    assert data[0]['students'] == [students[2].id]
+    assert set(data[0]['students']) == set(students_list)
 
 
 # тест успешного удаления курса
@@ -168,4 +168,45 @@ def test_delete_course(client, courses_factory):
     assert response.status_code == 204
     assert Course.objects.count() == count - 1
     assert resp.status_code == 404
+
+# дополниетльное задание
+
+# тест обновления курса с ограничением по количеству студентов
+@pytest.mark.django_db
+@pytest.mark.parametrize("num_student,status",[(15, 200), (21, 400)],)
+def test_update_course(client, courses_factory, students_factory, num_student, status):
+    # Arrange
+    courses = courses_factory()
+    students = students_factory(_quantity=num_student)
+    # name = courses.name + 'test'
+
+    # Act
+    url = f'/api/v1/courses/{courses.id}/'
+    students_list = [students[i].id for i in range(num_student)]
+    data = {'name': courses.name, 'students': students_list,}
+    resp = client.put(url, data=data)
+
+    # Assert
+    assert resp.status_code == status
+
+
+#тест создания курса с ограничением по количеству студентов на курсе
+@pytest.mark.django_db
+@pytest.mark.parametrize("num_student,status,expected",[(15, 201, 1), (21, 400, 0)],)
+def test_create_course(client, students_factory, num_student, status, expected):
+    # Arrange
+    count = Course.objects.count()
+    students = students_factory(_quantity=num_student)
+    students_list = [students[i].id for i in range(num_student)]
+    url = '/api/v1/courses/'
+    data = {'name': 'test_name_course', 'students': students_list,}
+
+    # Act
+    response = client.post(url, data=data)
+
+    # Assert
+    assert response.status_code == status
+    assert Course.objects.count() == count + expected
+
+
 
