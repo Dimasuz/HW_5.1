@@ -32,7 +32,6 @@ def students_factory():
 #фикстура максимального количества студентов
 @pytest.fixture
 def max_student_in_settings(settings):
-#    settings.MAX_STUDENTS_PER_COURSE = True
     return settings.MAX_STUDENTS_PER_COURSE
 
 # проверка получения 1го курса (retrieve-логика)
