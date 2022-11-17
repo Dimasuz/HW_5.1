@@ -34,7 +34,7 @@ def students_factory():
 def max_student_in_settings(settings):
     return settings.MAX_STUDENTS_PER_COURSE
 
-# проверка получения 1го курса (retrieve-логика)
+# проверка получения одного курса (retrieve-логика)
 # создаем курс через фабрику
 # строим урл и делаем запрос через тестовый клиент
 # проверяем, что вернулся именно тот курс, который запрашивали
@@ -42,17 +42,16 @@ def max_student_in_settings(settings):
 def test_get_firstcourse(client, courses_factory):
 
     # Arrange
-    courses = courses_factory(name='Первый курс')
-    url = '/api/v1/courses/'
-    data = {'name': 'Первый курс'}
+    courses = courses_factory()
+    url = f'/api/v1/courses/{courses.id}/'
 
     # Act
-    response = client.get(url, data=data)
+    response = client.get(url)
     data = response.json()
 
     # Assert
     assert response.status_code == 200
-    assert data[0]['name'] == 'Первый курс'
+    assert data['id'] == courses.id
 
 
 # проверка получения списка курсов (list-логика)
